@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AvaNews Builder | سازنده قالب‌های خبری</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ---------- ستون فرم (سمت راست) ---------- */
+        .sidebar {
+            width: 450px;
+            background: #1e293b;
+            padding: 25px;
+            overflow-y: auto;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: 900;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .brand span { color: #ef4444; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+
+        label { font-size: 13px; font-weight: 700; color: #94a3b8; }
+        
+        input, select, textarea {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ef4444;
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        .btn {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn:hover { background: #dc2626; transform: translateY(-2px); }
+        .btn-secondary { background: #334155; color: #fff; }
+        .btn-secondary:hover { background: #475569; }
+
+        /* ---------- ستون پیش‌نمایش (سمت چپ) ---------- */
+        .preview-area {
+            flex: 1;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .preview-window {
+            background: #fff;
+            width: 100%;
+            max-width: 800px;
+            min-height: 600px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            color: #1e293b;
+        }
+
+        /* ---------- استایل‌های قالب پیش‌نمایش ---------- */
+        .pv-title { font-size: 32px; font-weight: 900; margin-bottom: 15px; color: #0f172a; line-height: 1.3; }
+        .pv-meta { font-size: 13px; color: #64748b; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
+        .pv-img { width: 100%; border-radius: 12px; margin-bottom: 25px; object-fit: cover; }
+        .pv-summary { font-size: 18px; font-weight: 700; color: #334155; line-height: 1.8; margin-bottom: 20px; }
+        .pv-content { font-size: 16px; line-height: 2; color: #475569; white-space: pre-wrap; }
+
+        /* استایل اختصاصی قالب‌های مختلف */
+        .theme-classic .pv-title { text-align: right; }
+        .theme-modern { padding: 0; }
+        .theme-modern .pv-header { background: linear-gradient(135deg, #1e293b, #0f172a); color: #fff; padding: 40px; border-radius: 12px 12px 0 0; }
+        .theme-modern .pv-title { color: #fff; }
+        .theme-modern .pv-meta { color: #94a3b8; border-color: #334155; }
+        .theme-modern .pv-body { padding: 40px; }
+        .theme-minimal { padding: 60px 40px; }
+        .theme-minimal .pv-title { text-align: center; border-bottom: 1px solid #000; padding-bottom: 20px; }
+        .theme-minimal .pv-meta { text-align: center; border: none; }
+        
+        /* اسکرول‌بار سفارشی */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <!-- ستون فرم -->
+    <div class="sidebar">
+        <div class="brand">Ava<span>Builder</span></div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label>تاریخ خبر</label>
+                <input type="date" id="newsDate" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>انتخاب قالب</label>
+                <select id="newsTheme" onchange="updatePreview()">
+                    <option value="classic">کلاسیک (AvaNews اصلی)</option>
+                    <option value="modern">مدرن (هدر رنگی)</option>
+                    <option value="minimal">مینیمال (ساده و شیک)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>شناسه فایل (نام لاتین)</label>
+            <input type="text" id="newsSlug" placeholder="first-news" oninput="updatePreview()">
+        </div>
+
+        <div class="form-group">
+            <label>عنوان خبر</label>
+            <input type="text" id="newsTitle" placeholder="یک عنوان جذاب بنویسید..." oninput="updatePreview()">
+        </div>
+
+        <div class="form-group">
+            <label>لینک تصویر کاور (اختیاری)</label>
+            <input type="url" id="newsImage" placeholder="https://..." oninput="updatePreview()">
+        </div>
+
+        <div class="form-group">
+            <label>خلاصه خبر (Lead)</label>
+            <textarea id="newsSummary" placeholder="متن پیش‌نمایش در صفحه اصلی..." oninput="updatePreview()"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>متن اصلی خبر</label>
+            <textarea id="newsContent" placeholder="متن کامل خبر را اینجا بنویسید..." style="min-height: 120px;" oninput="updatePreview()"></textarea>
+        </div>
+
+        <button class="btn" onclick="downloadHTML()">📥 دانلود فایل HTML</button>
+    </div>
+
+    <!-- ستون پیش‌نمایش -->
+    <div class="preview-area">
+        <div id="previewWindow" class="preview-window theme-classic">
+            <div id="pv-header-wrapper">
+                <h1 class="pv-title" id="pvTitle">عنوان خبر شما در اینجا نمایش داده می‌شود</h1>
+                <div class="pv-meta" id="pvMeta">📅 تاریخ | ✍️ AvaNews</div>
+            </div>
+            <div id="pv-body-wrapper">
+                <img src="" id="pvImage" class="pv-img" style="display: none;" alt="Cover">
+                <div class="pv-summary" id="pvSummary">خلاصه خبر...</div>
+                <div class="pv-content" id="pvContent">متن اصلی خبر...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // تنظیم تاریخ امروز
+        document.getElementById('newsDate').valueAsDate = new Date();
+        
+        // به‌روزرسانی زنده پیش‌نمایش
+        function updatePreview() {
+            const title = document.getElementById('newsTitle').value || 'عنوان خبر شما در اینجا نمایش داده می‌شود';
+            const image = document.getElementById('newsImage').value;
+            const summary = document.getElementById('newsSummary').value || 'خلاصه خبر...';
+            const content = document.getElementById('newsContent').value || 'متن اصلی خبر...';
+            const dateVal = document.getElementById('newsDate').value;
+            const theme = document.getElementById('newsTheme').value;
+
+            // اعمال تم
+            const windowEl = document.getElementById('previewWindow');
+            windowEl.className = `preview-window theme-${theme}`;
+
+            // پر کردن مقادیر
+            document.getElementById('pvTitle').innerText = title;
+            document.getElementById('pvSummary').innerText = summary;
+            document.getElementById('pvContent').innerText = content;
+            
+            if (dateVal) {
+                const d = new Date(dateVal);
+                const dateStr = d.toLocaleDateString('fa-IR');
+                document.getElementById('pvMeta').innerText = `📅 ${dateStr} | ✍️ AvaNews`;
+            }
+
+            const imgEl = document.getElementById('pvImage');
+            if (image) {
+                imgEl.src = image;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            // ساختاردهی هدر و بدنه بر اساس تم
+            const hWrap = document.getElementById('pv-header-wrapper');
+            const bWrap = document.getElementById('pv-body-wrapper');
+            
+            if (theme === 'modern') {
+                if (hWrap.parentNode !== windowEl || bWrap.parentNode !== windowEl) {
+                    windowEl.innerHTML = '';
+                    windowEl.appendChild(hWrap);
+                    windowEl.appendChild(bWrap);
+                }
+            } else {
+                if (hWrap.parentNode !== windowEl || bWrap.parentNode !== windowEl) {
+                    windowEl.innerHTML = '';
+                    windowEl.appendChild(hWrap);
+                    windowEl.appendChild(bWrap);
+                }
+            }
+        }
+
+        // تولید و دانلود فایل HTML
+        function downloadHTML() {
+            const dateVal = document.getElementById('newsDate').value;
+            const slug = document.getElementById('newsSlug').value.trim();
+            const title = document.getElementById('newsTitle').value.trim();
+            const image = document.getElementById('newsImage').value.trim();
+            const summary = document.getElementById('newsSummary').value.trim();
+            const content = document.getElementById('newsContent').value.trim();
+            const theme = document.getElementById('newsTheme').value;
+
+            if (!dateVal || !slug || !title || !summary || !content) {
+                alert('لطفاً فیلدهای ستاره‌دار (تاریخ، شناسه، عنوان، خلاصه و متن) را پر کنید.');
+                return;
+            }
+
+            const filename = `${dateVal}-${slug}.html`;
+
+            // تولید کدهای HTML بر اساس تم انتخاب شده
+            let bodyHTML = '';
+
+            if (theme === 'classic') {
+                bodyHTML = `
+                    <h1>${title}</h1>
+                    ${image ? `<img src="${image}" alt="${title}">` : ''}
+                    <p><b>${summary}</b></p>
+                    <p>${content.replace(/\n/g, '</p>\n    <p>')}</p>
+                `;
+            } else if (theme === 'modern') {
+                bodyHTML = `
+                    <div style="background: #0f172a; color: #fff; padding: 40px; margin-bottom: 30px; border-radius: 8px;">
+                        <h1 style="margin: 0; color: #fff;">${title}</h1>
+                        <p style="color: #94a3b8; margin-top: 10px;">📅 ${dateVal} | ✍️ AvaNews</p>
+                    </div>
+                    ${image ? `<img src="${image}" alt="${title}" style="width:100%; border-radius: 8px; margin-bottom: 20px;">` : ''}
+                    <p style="font-size: 18px; font-weight: bold; color: #334155;">${summary}</p>
+                    <p>${content.replace(/\n/g, '</p>\n    <p>')}</p>
+                `;
+            } else if (theme === 'minimal') {
+                bodyHTML = `
+                    <div style="max-width: 600px; margin: 0 auto; text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px;">
+                        <h1 style="font-weight: 300; letter-spacing: 1px;">${title}</h1>
+                        <p style="color: #666; font-size: 14px;">📅 ${dateVal} | AvaNews</p>
+                    </div>
+                    ${image ? `<img src="${image}" alt="${title}" style="width:100%; margin-bottom: 20px;">` : ''}
+                    <p style="font-size: 18px; color: #444; font-style: italic;">${summary}</p>
+                    <p style="line-height: 2; color: #222;">${content.replace(/\n/g, '</p>\n    <p style="line-height: 2; color: #222;">')}</p>
+                `;
+            }
+
+            // قالب اصلی فایل خروجی
+            const htmlContent = `<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>${title} | AvaNews</title>
+</head>
+<body>
+    ${bodyHTML}
+</body>
+</html>`;
+
+            // دانلود
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // اجرای اولیه
+        updatePreview();
+    </script>
+</body>
+</html>
